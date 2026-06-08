@@ -185,7 +185,58 @@ Use:
 
 {{ forms.button("Save") }}
 
+### Template Inheritance
 
+1.create base.html.twig
+
+<html>
+<head>
+    {% block head %}
+    {% endblock %}
+</head>
+<body>
+
+{% block content %}
+{% endblock %}
+
+</body>
+</html>
+
+2. In the child template
+
+{% extends 'base.html.twig' %}
+
+{% block content %}
+<h1>Profile Page</h1>
+{% endblock %}
+
+### Block concept
+
+Block = placeholder
+
+Parent:
+{% block content %}
+Default Content
+{% endblock %}
+
+Child:
+{% block content %}
+New Content
+{% endblock %}
+
+Parent block : Append content
+{% block content %}
+    {{ parent() }}
+    Extra Content
+{% endblock %}
+
+### Autoscaping
+
+
+
+Q. can a block contain another block
+Q. can we define our own filters
+Q. can we define our own functions
 
 
 
