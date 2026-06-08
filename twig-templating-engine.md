@@ -151,7 +151,41 @@ generated html
   
 3. embed
    - embed = include + extends
-   - 
+   - can include template and can override blocks
+
+4. use
+   - allows block reuse
+   - rarely used
+   - eg :
+
+buttons.twig
+
+{% block save_button %}
+<button>Save</button>
+{% endblock %}
+
+in another template, 
+
+{% use "buttons.twig" %}
+
+5. import/macro
+   - Think of macros as functions.
+   eg :
+forms.twig
+
+{% macro button(text) %}
+    <button>{{ text }}</button>
+{% endmacro %}
+
+Import:
+
+{% import "forms.twig" as forms %}
+
+Use:
+
+{{ forms.button("Save") }}
+
+
 
 
 
