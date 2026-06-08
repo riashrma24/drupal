@@ -1,8 +1,3 @@
-# Drupal Notes
-
-The content below has been preserved as-is and wrapped in a Markdown code block to maintain formatting when viewed in Markdown editors.
-
-```text
 A custom Drupal theme lives in /web/themes/custom/
 
 mytheme/
@@ -57,7 +52,7 @@ mytheme/
         └── block.html.twig
 
 
-# Core template files : 
+## Core Template Files : 
 1. html.html.twig
    - Full HTML document wrapper (doctype, head, body)
    - html.html.twig
@@ -76,7 +71,7 @@ mytheme/
    - Views container
   
 
-# info.yml file
+## info.yml File
 Every Drupal theme needs a mytheme.info.yml file. It declares metadata, regions, libraries, and more.
 
 name: My Theme
@@ -116,7 +111,7 @@ regions:
 
 Libraries API — CSS & JS
 
-# mytheme.libraries.yml
+## mytheme.libraries.yml
 
 global-styling:
   version: VERSION
@@ -189,7 +184,7 @@ component	0	    Reusable UI components (cards, menus)
 state	    100	    States — .is-active, .is-collapsed
 theme	    200	    Visual overrides, color themes
 
-# Attaching libraries in twig
+## Attaching Libraries in Twig
 
 in a .html.twig file
 
@@ -376,7 +371,7 @@ Menu	    menu--[menu_name].html.twig
 
 function mytheme_theme_suggestions_node_alter(&$suggestions, $variables) { $node = $variables['elements']['#node']; // Add suggestion based on paragraph field reference if ($node->hasField('field_layout')) { $layout = $node->get('field_layout')->value; $suggestions[] = 'node__' . $node->bundle() . '__' . $layout; } }
 
-# Preprocess hooks
+## Preprocess Hooks
 
 Preprocess functions run before a template renders. They live in mytheme.theme and add/modify variables that Twig can access.
 
@@ -404,5 +399,3 @@ After defining breakpoints, create Responsive Image Styles at Admin → Configur
 
 
 Q. Difference between .html.twig and .twig files
-
-```
