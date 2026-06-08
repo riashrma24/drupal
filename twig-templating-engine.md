@@ -150,7 +150,7 @@ generated html
    - used for : Header, Footer, Sidebar, Card component, Reusable snippets
   
 3. embed
-   - embed = include+extends
+   - embed = include + extends
    - 
 
 
