@@ -350,7 +350,7 @@ Practical patterns with Drupal globals
 Drupal builds a list of template candidates in specificity order — most specific first. Your theme can override any template without touching core.
 Enable Twig debug in services.yml to see all template suggestions in your browser's HTML comments. Set twig.config: debug: true.
 
-Node templates — specificity order
+### Node templates — specificity order
 Template file	Matches
 node--123--full.html.twig	Node ID 123, full view mode
 node--123.html.twig	Node ID 123, any view mode
@@ -358,6 +358,44 @@ node--article--full.html.twig	Article type, full view mode
 node--article.html.twig	Any article node
 node--full.html.twig	Any node, full view mode
 node.html.twig	Any node (fallback)
+
+### Other common suggestion patterns
+Template	Specificity Pattern
+Block	    block--[module]--[delta].html.twig
+Page	    page--[path].html.twig, page--front.html.twig
+Field	    field--[field_name]--[bundle].html.twig
+View	    views-view--[view_name]--[display_id].html.twig
+Menu	    menu--[menu_name].html.twig
+
+### Custom template suggestions via hook
+
+function mytheme_theme_suggestions_node_alter(&$suggestions, $variables) { $node = $variables['elements']['#node']; // Add suggestion based on paragraph field reference if ($node->hasField('field_layout')) { $layout = $node->get('field_layout')->value; $suggestions[] = 'node__' . $node->bundle() . '__' . $layout; } }
+
+# Preprocess hooks
+
+Preprocess functions run before a template renders. They live in mytheme.theme and add/modify variables that Twig can access.
+
+use Drupal\Core\Url; /** * Implements hook_preprocess_node(). */ function mytheme_preprocess_node(&$variables) { $node = $variables['node']; // 1. Add a simple computed variable $variables['reading_time'] = ceil( str_word_count(strip_tags($node->get('body')->value)) / 200 ); // 2. Build a classes array $variables['classes'] = [ 'node', 'node--type-' . $node->bundle(), $node->isPromoted() ? 'node--promoted' : '', ]; // 3. Add a Url object $variables['node_url'] = $node->toUrl()->toString(); // 4. Load a related entity if (!$node->get('field_author')->isEmpty()) { $author = $node->get('field_author')->entity; $variables['author_name'] = $author->label(); } } /** * Implements hook_preprocess_html(). */ function mytheme_preprocess_html(&$variables) { // Add node type as body class $node = \Drupal::routeMatch()->getParameter('node'); if ($node) { $variables['attributes']['class'][] = 'page-node-type--' . $node->bundle(); } }
+
+Preprocess naming convention
+Hook	                Fires before
+hook_preprocess_html()	html.html.twig
+hook_preprocess_page()	page.html.twig
+hook_preprocess_node()	node.html.twig (all nodes)
+hook_preprocess_block()	block.html.twig
+hook_preprocess_field()	field.html.twig
+hook_preprocess_views_view()	views-view.html.twig
+hook_preprocess_paragraph()	paragraph.html.twig
+
+Breakpoints
+
+Drupal's Breakpoint module allows themes to declare breakpoints in YAML. They're used by responsive image styles and Picture elements.
+mytheme.breakpoints.yml
+mytheme.mobile: label: Mobile mediaQuery: '' weight: 0 multipliers: - 1x - 2x mytheme.tablet: label: Tablet mediaQuery: '(min-width: 768px)' weight: 1 multipliers: - 1x - 2x mytheme.desktop: label: Desktop mediaQuery: '(min-width: 1200px)' weight: 2 multipliers: - 1x - 2x
+
+After defining breakpoints, create Responsive Image Styles at Admin → Configuration → Media → Responsive image styles. Map each breakpoint to an image style. Then use the responsive image formatter on image fields.
+
+
 
 
 Q. Difference between .html.twig and .twig files
