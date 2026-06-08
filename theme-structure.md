@@ -175,3 +175,56 @@ slider:
     └── Dependencies
         └── core/drupal
 
+CSS SMACSS weight order
+
+Key	        Weight	Use for
+base	    -200	HTML element resets, normalize, variables
+layout	    -100	Grid systems, page-level layout
+component	0	    Reusable UI components (cards, menus)
+state	    100	    States — .is-active, .is-collapsed
+theme	    200	    Visual overrides, color themes
+
+# Attaching libraries in twig
+
+in a .html.twig file
+
+{# Attach a library to this template #} 
+{{ attach_library('mytheme/slider') }} 
+{# Conditionally attach #} 
+{% if content.field_gallery %} 
+{{ attach_library('mytheme/gallery') }}
+{% endif %}
+
+in a preprocess hook
+
+function mytheme_preprocess_node(&$variables) 
+{
+    if ($variables['node']->bundle() === 'article') 
+    { 
+        $variables['#attached']['library'][] = 'mytheme/article-styles'; 
+    }
+}
+
+## Regions and Blocks
+
+Regions are named areas defined in .info.yml. Blocks are placed into regions via the Block Layout UI or config. In Twig, regions render as variables
+
+in page.html.twig
+
+<header class="site-header">
+    {% if page.header %}
+        <div class="region region--header"> {{ page.header }} </div> 
+    {% endif %} 
+</header> 
+<main class="layout-main">
+    <div class="layout-container"> 
+        {% if page.sidebar_first %}
+        <aside class="layout-sidebar-first"> {{ page.sidebar_first }} </aside> 
+        {% endif %} 
+        <div class="layout-content"> 
+            {{ page.content }}
+        </div> 
+</div> 
+</main>
+
+Q. Difference between .html.twig and .twig files
