@@ -1,3 +1,8 @@
+# Drupal Notes
+
+The content below has been preserved as-is and wrapped in a Markdown code block to maintain formatting when viewed in Markdown editors.
+
+```text
 A custom Drupal theme lives in /web/themes/custom/
 
 mytheme/
@@ -399,3 +404,5 @@ After defining breakpoints, create Responsive Image Styles at Admin → Configur
 
 
 Q. Difference between .html.twig and .twig files
+
+```
