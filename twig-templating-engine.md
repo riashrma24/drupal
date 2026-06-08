@@ -23,8 +23,8 @@ return $twig->render(
 
 3. Twig
 
-<h1>{{ name }}</h1>
-<p>{{ age }}</p>
+d<h1>{{ name }}</h1>
+d<p>{{ age }}</p>
 
 4. HTML
 
@@ -61,8 +61,97 @@ Twig internally tries $user->name or $user->getName() or $user['name'] depending
     {{ key }} : {{ value }}
 {% endfor %}
 
+Twig also creates some loop variables : 
+loop.index
+loop.index0
+loop.first
+loop.last
+loop.length
+
+### Filters in twig
+
+1. {{ name|upper }} -> upper
+2. {{ name|lower }} -> lower
+3. {{ skills|length }} -> length
+4. {{ text|trim }} -> trim
+5. {{ text|replace({'hello':'hi'}) }} -> replace
+6. {{ skills|join(', ') }} -> join
+7. {{ username|default('Guest') }} -> default
+
+### Functions
+1. {{ range(1,5) }}
+2. 
 
 
+### Set Variable
+
+{% set name = "Riya" %}
+
+### Include, extends, 
+
+1. extends
+   - creates a parent child relationship between templates.
+   - only one parent possible, multiple parents not allowed.
+   - Used for : Page layouts, Site layouts, Master templates
+
+eg : in java
+
+class Animal {
+    void eat() {}
+}
+
+class Dog extends Animal {
+}
+
+Twig:
+
+{% extends "base.html.twig" %}
+
+eg : Parent
+
+{# base.html.twig #}
+
+<html>
+<head>
+    {% block head %}
+    {% endblock %}
+</head>
+
+<body>
+    {% block content %}
+    {% endblock %}
+</body>
+</html>
+
+child
+
+{% extends "base.html.twig" %}
+
+{% block content %}
+    <h1>Profile Page</h1>
+{% endblock %}
+
+generated html
+
+<html>
+<head>
+</head>
+
+<body>
+    <h1>Profile Page</h1>
+</body>
+</html>
+
+2. include
+   - simply inserts another template.
+   - No blocks overridden.
+   - No parent-child relationship.
+   - Just rendering another template.
+   - used for : Header, Footer, Sidebar, Card component, Reusable snippets
+  
+3. embed
+   - embed = include+extends
+   - 
 
 
 
