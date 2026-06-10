@@ -376,3 +376,13 @@ eg : {# content.field_image — outputs full rendered HTML #}
 
 <img width="798" height="490" alt="image" src="https://github.com/user-attachments/assets/03afedbf-2b5b-435c-9974-632f359af853" />
 
+using both together : 
+{# Check existence via node (fast, no rendering) #}
+{# Render via content (respects image style config) #}
+
+{% if node.field_image.target_id %}
+  <div class="article-card__image">
+    {{ content.field_image }}
+  </div>
+{% endif %}
+
