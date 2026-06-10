@@ -420,7 +420,48 @@ The most important use of set in Drupal is avoiding double rendering. If you wro
 include inserts another Twig file at that point in the output. The included file is a static partial — it receives variables but you cannot override sections of it. What you include is what you get.
 
 
+{# Basic include — inherits ALL current template variables #}
+{% include '@training_theme/partials/reading-time.html.twig' %}
 
+{# Include with specific variables passed #}
+{% include '@training_theme/partials/card-meta.html.twig' with {
+  'author': node.owner.displayname,
+  'date': node.created.value|format_date('custom', 'M j, Y'),
+  'reading_time': reading_time,
+} %}
 
+{# 'only' keyword — included file gets ONLY what you pass #}
+{# none of the parent template's variables leak in #}
+{% include '@training_theme/partials/card-meta.html.twig' with {
+  'author': node.owner.displayname,
+} only %}
+
+3. {% embed %}
+
+{% embed %} — Include but override sections inside it
+embed is include + {% block %} override capability. You pull in a file and you can replace named sections of it from the outside. The embedded file defines blocks, the parent overrides them.
+
+{# card-base.html.twig — the reusable shell with overridable blocks #}
+<div class="{{ card_class|default('card') }}">
+
+  {% block card_image %}
+    {# default — empty, override to add image #}
+  {% endblock %}
+
+  <div class="card__body">
+    {% block card_title %}
+      {# default — empty, override to add title #}
+    {% endblock %}
+
+    {% block card_content %}
+      {# default — empty, override for body content #}
+    {% endblock %}
+
+    {% block card_footer %}
+      {# default — empty, override for meta/actions #}
+    {% endblock %}
+  </div>
+
+</div>
 
 
