@@ -5,6 +5,9 @@ Q4. What does the pipe | operator do in Twig? Explain chaining filters with a re
 Q5. what is this content.body? what do we get these variables content and body from? and do we get different variables in different templates?
 Q6. What is the difference between node.field_image and content.field_image in Drupal Twig — when should you use each?
 Q7. What is the difference between set and include and embed in Drupal Twig — give an example of when to use each?
+Q8. What is the difference between include and extends in Twig? How does Twig template inheritance work with block tags?
+Q9. How does Twig sandbox mode work in Drupal — what functions and filters are blocked and why?
+
 
 sol1 : Hooks
 1. A hook is Drupal's way of letting your code plug into the core system without modifying core files.
@@ -463,5 +466,236 @@ embed is include + {% block %} override capability. You pull in a file and you c
   </div>
 
 </div>
+
+Now two different templates use the same base but with different content in each block:
+{# node--article--teaser.html.twig — article card #}
+{% embed '@training_theme/partials/card-base.html.twig' with {
+  'card_class': 'card card--article'
+} %}
+
+  {% block card_image %}
+    {% if content.field_image %}
+      <a href="{{ url }}">{{ content.field_image }}</a>
+    {% endif %}
+  {% endblock %}
+
+  {% block card_title %}
+    <h3 class="card__title">
+      <a href="{{ url }}">{{ label }}</a>
+    </h3>
+  {% endblock %}
+
+  {% block card_content %}
+    {% set excerpt = content.body|render|striptags|trim %}
+    <p>{{ excerpt|slice(0,160) }}{% if excerpt|length > 160 %}…{% endif %}</p>
+  {% endblock %}
+
+  {% block card_footer %}
+    <div class="card__meta">
+      {{ node.owner.displayname }} · 
+      {{ node.created.value|format_date('custom', 'M j, Y') }}
+    </div>
+  {% endblock %}
+
+{% endembed %}
+
+Sol 8 : Two completely different concepts. They solve opposite problems
+
+1. {% include %} — Composition
+- Your template stays in charge. You pull smaller pieces into it.
+- The included file has no idea who included it. It just renders and returns. There is no relationship between the files, one just happens to use the other.
+eg : {# I am the main template. I include helpers. #}
+<article>
+  <h1>{{ label }}</h1>
+  {% include '@training_theme/partials/article-meta.html.twig' %}
+  {{ content.body }}
+</article>
+
+2. {% extends %} - Inheritance
+- extends is completely different. You are saying "I am a child of another template". The child does not write a full template — it only writes the parts it wants to replace. Everything else comes from the parent automatically.
+- The mechanism is {% block %} tags. The parent defines named slots. The child fills them in.
+
+eg : parent - page-base.html.twig
+
+{# page-base.html.twig — the parent #}
+<div class="page">
+
+  <header class="site-header" style="background: var(--header-bg, #003366)">
+    {% block header %}
+      {# default header content — child can replace this #}
+      {{ page.header }}
+      {{ page.primary_menu }}
+    {% endblock %}
+  </header>
+
+  {% block hero %}
+    {# empty by default — child can add a hero here #}
+  {% endblock %}
+
+  <main class="main-content">
+    {% block content %}
+      {# default — child should override this #}
+      {{ page.content }}
+    {% endblock %}
+  </main>
+
+  <footer class="site-footer">
+    {% block footer %}
+      {# default footer — child can extend or replace #}
+      <div class="footer-grid">
+        {{ page.footer_col_1 }}
+        {{ page.footer_col_2 }}
+        {{ page.footer_col_3 }}
+        {{ page.footer_col_4 }}
+      </div>
+    {% endblock %}
+  </footer>
+
+</div>
+
+child 1 - Standard page page.html.twig
+
+{# page.html.twig — standard page #}
+{% extends '@training_theme/page-base.html.twig' %}
+
+{# Only override what's different #}
+{% block content %}
+  <div class="container">
+    {{ page.breadcrumb }}
+    {{ page.highlighted }}
+    {{ page.content }}
+  </div>
+{% endblock %}
+
+{# header and footer come from parent automatically #}
+
+child 2 - Landing page with hero page--front.html.twig
+
+{# page--front.html.twig — front page with hero #}
+{% extends '@training_theme/page-base.html.twig' %}
+
+{# Fill the hero block — parent left it empty #}
+{% block hero %}
+  <div class="hero hero--homepage">
+    <h1>Welcome to {{ site_name }}</h1>
+    <p>{{ site_slogan }}</p>
+    <a href="/articles" class="btn">Read Articles</a>
+  </div>
+{% endblock %}
+
+{% block content %}
+  {# Different layout for front page #}
+  <div class="featured-content">
+    {{ page.content }}
+  </div>
+{% endblock %}
+
+{# header and footer still come from parent #}
+
+child 3 - Article page
+
+{# page--node--article.html.twig #}
+{% extends '@training_theme/page-base.html.twig' %}
+
+{% block content %}
+  <div class="article-layout">
+    <div class="article-layout__main">
+      {{ page.content }}
+    </div>
+    <aside class="article-layout__sidebar">
+      {{ page.sidebar }}
+    </aside>
+  </div>
+{% endblock %}
+
+{# Extend the parent footer — add something AFTER it #}
+{% block footer %}
+  {{ parent() }}   {# ← outputs parent's footer grid first #}
+  <div class="article-footer-cta">
+    <p>Enjoyed this article? Subscribe for more.</p>
+  </div>
+{% endblock %}
+
+Note : vimp
+{% extends %} must be the very first tag in the file. Nothing — not even whitespace — can come before it. And once a template extends another, it can only contain {% block %} tags at the top level. No loose HTML, no loose Twig outside blocks.
+
+{# WRONG — content outside a block #}
+{% extends '@training_theme/page-base.html.twig' %}
+<div>this is outside a block — IGNORED or error</div>
+{% block content %}...{% endblock %}
+
+{# RIGHT — everything inside blocks #}
+{% extends '@training_theme/page-base.html.twig' %}
+{% block content %}
+  <div>this is inside a block — correct</div>
+{% endblock %}
+
+Sol9 : Without sandbox mode, someone with template editing access could write:
+
+{# Without sandbox — DANGEROUS #}
+{{ exec('rm -rf /') }}
+{{ constant('FILE_APPEND') }}
+{{ '/etc/passwd'|file_get_contents }}
+
+Twig sandbox mode makes that impossible by whitelisting only what Drupal explicitly allows.
+
+When is sandbox mode active?
+Theme template files (.html.twig on disk)
+→ NOT sandboxed
+→ Full Twig available
+→ Only developers can edit these anyway
+
+Inline templates (stored in database)
+→ SANDBOXED
+→ Restricted subset of Twig only
+→ Content editors can create these via CKEditor, Views, etc.
+
+- Inline templates come from places like: Views: custom field rewrite with Twig syntax, Block content with Twig text format, Any contributed module that renders user-provided Twig
+- Drupal defines the sandbox policy in core/lib/Drupal/Core/Template/TwigEnvironment.php and core/lib/Drupal/Core/Template/TwigSandboxPolicy.php
+- The policy is a whitelist — everything not on the list is blocked:
+
+// TwigSandboxPolicy.php (simplified)
+class TwigSandboxPolicy implements SecurityPolicyInterface {
+
+  // Only these PHP functions can be called
+  protected $allowedFunctions = [
+    'range',
+    'constant',     // only safe constants
+    'cycle',
+    'random',
+    'date',
+    'include',
+    'dump',         // only in debug mode
+  ];
+
+  // Only these filters can be used
+  protected $allowedFilters = [
+    'abs', 'batch', 'capitalize', 'column',
+    'convert_encoding', 'date', 'date_modify',
+    'default', 'escape', 'first', 'format',
+    'join', 'json_encode', 'keys', 'last',
+    'length', 'lower', 'map', 'merge',
+    'nl2br', 'number_format', 'raw', 'replace',
+    'reverse', 'round', 'slice', 'sort',
+    'spaceless', 'split', 'striptags', 'title',
+    'trim', 'upper', 'url_encode',
+    // Drupal specific
+    't', 'trans', 'placeholder', 'clean_class',
+    'clean_id', 'format_date', 'render',
+    'without', 'check_markup',
+  ];
+
+  // Only these object methods can be called
+  protected $allowedMethods = [
+    // Explicit method whitelist per class
+  ];
+
+  // Only these object properties can be accessed
+  protected $allowedProperties = [
+    // Explicit property whitelist per class
+  ];
+}
+
+
 
 
