@@ -199,3 +199,137 @@ article-card:
 6. goto homepage, the articles' teaser view will be displayed there
 
 for 2.2
+
+1. create a file themes/custom/YOUR_THEME/templates/node/node--article--full.html.twig
+
+{{ attach_library('sky/article-hero') }}
+{#
+/**
+ * @file
+ * node--article--full.html.twig
+ *
+ * Conditional Hero with 3-level fallback:
+ *   1. field_hero_image (if attached to node)
+ *   2. Theme's default fallback image asset
+ *   3. CSS gradient (no image at all)
+ */
+#}
+
+{% if node.field_image.0.entity.id %}
+  {% set hero_url = file_url(node.field_image.0.entity.uri.value) %}
+  {% set hero_type = 'image' %}
+{% else %}
+  {% set hero_url = null %}
+  {% set hero_type = 'gradient' %}
+{% endif %}
+
+<section class="hero hero--{{ hero_type }}"{% if hero_type == 'image' %} style="background-image: url('{{ hero_url }}'); background-size: cover; background-position: center;"{% endif %}>
+  <div class="hero__overlay"></div>
+  <div class="hero__content">
+    {% if node.field_tags is not empty %}
+      <div class="hero__tags">
+        {% for tag in node.field_tags %}
+          <a href="{{ path('entity.taxonomy_term.canonical', {'taxonomy_term': tag.target_id}) }}"
+             class="hero__tag">
+            {{ tag.entity.name.value }}
+          </a>
+        {% endfor %}
+      </div>
+    {% endif %}
+    <h1 class="hero__title">{{ label }}</h1>
+    <div class="hero__meta">
+      <span class="hero__author">By {{ node.getOwner().getDisplayName() }}</span>
+      <span class="hero__date">
+        {{ node.created.value|format_date('custom', 'M j, Y') }}
+      </span>
+    </div>
+  </div>
+
+</section>
+
+<article class="article-full">
+  <div class="article-full__body">
+    {{ content.body }}
+  </div>
+</article>
+
+2. Add a CSS file - /Users/sandeep/osl-projects/my-drupal-site/web/themes/sky/css/component/hero.css
+
+.hero {
+  position: relative;
+  min-height: 420px;
+  display: flex;
+  align-items: flex-end;
+}
+
+.hero--gradient {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+}
+
+.hero__overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.hero__content {
+  position: relative;
+  z-index: 1;
+  padding: 2.5rem;
+  color: #fff;
+  width: 100%;
+}
+
+.hero__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 0.75rem;
+}
+
+.hero__tag {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 0.2rem 0.6rem;
+  border-radius: 3px;
+  text-decoration: none;
+}
+
+.hero__tag:hover {
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.hero__title {
+  margin: 0 0 0.75rem;
+  font-size: 2.25rem;
+  line-height: 1.2;
+  color: #fff;
+}
+
+.hero__meta {
+  display: flex;
+  gap: 1.5rem;
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.article-full {
+  max-width: 820px;
+  margin: 0 auto;
+  padding: 2.5rem 1.5rem;
+}
+
+3. Attach this css to the twig file
+
+{{ attach_library('sky/article-hero') }}
+
+4. Define its library in .libraries.yml
+
+article-hero:
+  css:
+    component:
+      css/component/hero.css: {}
