@@ -226,5 +226,101 @@ sol5 : Each template has its own specific set of variables that Drupal prepares 
 
 <img width="855" height="321" alt="image" src="https://github.com/user-attachments/assets/93f72581-e418-4ffd-9933-df22355e6cc1" />
 
+{# Enable twig debug first, then: #}
+{{ dump(content) }}    {# see everything in content #}
+{{ dump(node) }}       {# see the raw entity #}
+{{ dump(_context) }}   {# see ALL variables available #}
+
+There are two ways to get the values : 
+1. via node - raw entity values
+
+{# Plain text value #}
+{{ node.body.value }}
+
+{# Processed/formatted value (with HTML) #}
+{{ node.body.processed }}
+
+{# Summary field #}
+{{ node.body.summary }}
+
+{# Image alt text #}
+{{ node.field_image.alt }}
+
+{# Image file URI #}
+{{ node.field_image.entity.uri.value }}
+
+{# First tag name #}
+{{ node.field_tags[0].entity.name.value }}
+
+{# Node title #}
+{{ node.title.value }}
+
+{# Author name #}
+{{ node.uid.entity.name.value }}
+
+2. via content
+
+{# Instead of this #}
+{{ dump(content) }}
+
+{# Do this — dump only the field you care about #}
+{{ dump(content.body) }}
+
+{# Or go even deeper — get just the raw text value #}
+{{ dump(node.body.value) }}
+{{ dump(node.field_image.alt) }}
+{{ dump(node.field_tags[0].entity.name.value) }}
+
+{# Dump just the keys of content — see what fields exist #}
+{{ dump(content|keys) }}
+
+From where do these variables come from?
+
+content is built by hook_preprocess_node() which Drupal core runs automatically before any node template renders. You never call it yourself — Drupal fires it and hands the result to Twig.
+
+Note : vimp
+When Drupal runs preprocess for a node template, it doesn't just run YOUR function. It runs a chain of preprocess functions in a specific order:
+1. template_preprocess()              ← Drupal core — runs first, always
+2. template_preprocess_node()         ← Drupal core — node specific
+3. olivero_preprocess_node()          ← base theme (if it has one)
+4. training_theme_preprocess_node()   ← YOUR function — runs last
+
+Your function doesn't replace the chain — it appends to the end of it. By the time your function runs, content, node, label, url are already sitting in $variables.
+
+Where each variable comes from ?
+// STEP 1 — template_preprocess()
+// drupal/core/includes/theme.inc
+// Sets variables available in EVERY template regardless of type:
+$variables['attributes']        = new Attribute();
+$variables['title_attributes']  = new Attribute();
+$variables['logged_in']         = $user->isAuthenticated();
+$variables['is_admin']          = $user->hasPermission('access admin');
+
+// STEP 2 — template_preprocess_node()
+// drupal/core/modules/node/node.module
+// Sets variables specific to node templates:
+$variables['node']      = $node;
+$variables['content']   = $build;      // ← content comes from HERE
+$variables['label']     = $node->label();
+$variables['url']       = $node->toUrl()->toString();
+$variables['teaser']    = $view_mode === 'teaser';
+$variables['page']      = $view_mode === 'full';
+$variables['date']      = $node->get('created')->value;
+
+// STEP 3 — your_theme_preprocess_node()
+// YOUR training_theme.theme file
+// $variables already has everything above
+// You just ADD to it:
+$variables['reading_time'] = 5;   // ← your custom variable
+
+Proof : 
+function training_theme_preprocess_node(&$variables) {
+  // By the time YOUR code runs, dump what's already in $variables
+  // These were set by template_preprocess_node() BEFORE you ran
+  \Drupal::logger('training_theme')->debug(
+    'Variables already set by core: @vars',
+    ['@vars' => implode(', ', array_keys($variables))]
+  );
+}
 
 
