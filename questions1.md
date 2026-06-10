@@ -4,6 +4,7 @@ Q3. What is the difference between {{ }}, {% %} and {# #} in Twig — when do yo
 Q4. What does the pipe | operator do in Twig? Explain chaining filters with a real example.
 Q5. what is this content.body? what do we get these variables content and body from? and do we get different variables in different templates?
 Q6. What is the difference between node.field_image and content.field_image in Drupal Twig — when should you use each?
+Q7. What is the difference between set and include and embed in Drupal Twig — give an example of when to use each?
 
 sol1 : Hooks
 1. A hook is Drupal's way of letting your code plug into the core system without modifying core files.
@@ -385,4 +386,41 @@ using both together :
     {{ content.field_image }}
   </div>
 {% endif %}
+
+Sol7 : Three different tools for three different jobs
+1. {% set %} — Store a value in a variable
+- set has nothing to do with including other files. It just assigns a value to a variable so you can reuse it without repeating yourself.
+- set can also store entire blocks of HTML using the block form:
+{% set card_meta %}
+  <div class="meta">
+    <span>{{ node.owner.displayname }}</span>
+    <time>{{ node.created.value|format_date('custom', 'M j, Y') }}</time>
+  </div>
+{% endset %}
+
+{# Now use it wherever needed #}
+{{ card_meta }}
+
+Note : vimp
+The most important use of set in Drupal is avoiding double rendering. If you wrote content.body|render|striptags twice in a template, Drupal would render the body field twice — double the work. set stores the result once and reuses it.
+
+{# WRONG — renders body field twice, expensive #}
+{% if content.body|render|striptags|trim %}
+  {{ content.body|render|striptags|trim|slice(0,160) }}
+{% endif %}
+
+{# RIGHT — renders once, reuses #}
+{% set excerpt = content.body|render|striptags|trim %}
+{% if excerpt %}
+  {{ excerpt|slice(0, 160) }}
+{% endif %}
+
+2. {% include %}
+
+include inserts another Twig file at that point in the output. The included file is a static partial — it receives variables but you cannot override sections of it. What you include is what you get.
+
+
+
+
+
 
