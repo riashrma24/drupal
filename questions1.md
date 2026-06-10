@@ -3,6 +3,7 @@ Q2. What is the difference between html.html.twig and page.html.twig?
 Q3. What is the difference between {{ }}, {% %} and {# #} in Twig — when do you use each?
 Q4. What does the pipe | operator do in Twig? Explain chaining filters with a real example.
 Q5. what is this content.body? what do we get these variables content and body from? and do we get different variables in different templates?
+Q6. What is the difference between node.field_image and content.field_image in Drupal Twig — when should you use each?
 
 sol1 : Hooks
 1. A hook is Drupal's way of letting your code plug into the core system without modifying core files.
@@ -323,4 +324,55 @@ function training_theme_preprocess_node(&$variables) {
   );
 }
 
+Sol6 : Difference
+node.field_image    {# raw entity field object — data only #}
+content.field_image {# render array — already prepared for display #}
+
+node is the entity object itself — the raw PHP object representing the node. When you access fields through node, you are traversing the entity's field API directly. You get field objects, typed data, and raw values.
+
+{# Raw field item object #}
+{{ node.field_image }}
+
+{# The file URI — raw path like public://image.jpg #}
+{{ node.field_image.entity.uri.value }}
+
+{# The alt text stored on the field #}
+{{ node.field_image.alt }}
+
+{# The image entity's file ID #}
+{{ node.field_image.target_id }}
+
+{# The actual file entity it references #}
+{{ node.field_image.entity.filename.value }}
+
+You are reaching directly into the entity's data. No display settings. No image styles. No field formatters. Just raw stored values.
+
+content is a render array built by Drupal's field formatter system. It has already gone through the display settings you configured at: Structure → Content types → Article → Manage display
+
+{# Fully rendered field — uses the image style you configured in Manage Display #}
+{{ content.field_image }}
+
+{# Entire content render array — all fields at once #}
+{{ content }}
+
+eg : {# content.field_image — outputs full rendered HTML #}
+{{ content.field_image }}
+
+{# Outputs something like: #}
+<div class="field field--name-field-image">
+  <img src="/sites/default/files/styles/large/public/image.jpg"
+       alt="My alt text"
+       width="800" height="600" />
+</div>
+
+{# ─────────────────────────────────────────── #}
+
+{# node.field_image — gives you raw data to work with yourself #}
+{{ node.field_image.entity.uri.value }}
+{# Outputs just: public://image.jpg #}
+
+{{ node.field_image.alt }}
+{# Outputs just: My alt text #}
+
+<img width="798" height="490" alt="image" src="https://github.com/user-attachments/assets/03afedbf-2b5b-435c-9974-632f359af853" />
 
