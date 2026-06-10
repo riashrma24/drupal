@@ -2,6 +2,7 @@ Q1. What is the difference between hooks and preprocesses?
 Q2. What is the difference between html.html.twig and page.html.twig?
 Q3. What is the difference between {{ }}, {% %} and {# #} in Twig — when do you use each?
 Q4. What does the pipe | operator do in Twig? Explain chaining filters with a real example.
+Q5. what is this content.body? what do we get these variables content and body from? and do we get different variables in different templates?
 
 sol1 : Hooks
 1. A hook is Drupal's way of letting your code plug into the core system without modifying core files.
@@ -212,3 +213,18 @@ Takes a substring from position 0 to position 160. Works exactly like PHP's subs
 
 <!-- Output: first 160 characters -->
 "This is the body content of the article. Lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut lab"
+
+sol5 : Each template has its own specific set of variables that Drupal prepares for it. The variables you get in node.html.twig are completely different from what you get in block.html.twig or page.html.twig.
+
+<img width="718" height="346" alt="image" src="https://github.com/user-attachments/assets/fa88c3a4-c0b1-44fd-8a41-0dbef45b5957" />
+
+<img width="790" height="303" alt="image" src="https://github.com/user-attachments/assets/42078ece-34b4-4e8a-a218-0337b6c75704" />
+
+<img width="730" height="312" alt="image" src="https://github.com/user-attachments/assets/ec2478e4-d021-4535-a48f-ecea21e7484d" />
+
+<img width="791" height="235" alt="image" src="https://github.com/user-attachments/assets/b4227099-b657-4b17-8db6-5472c794e3be" />
+
+<img width="855" height="321" alt="image" src="https://github.com/user-attachments/assets/93f72581-e418-4ffd-9933-df22355e6cc1" />
+
+
+
