@@ -24,4 +24,28 @@ for 1.1
 5. if conditional ke andar render add kara
 
 for 1.2
-1. 
+1. write code for sea_preprocess_node() in .theme file
+2. create /templates/content/node--article.html.twig and write the overriding twig code in it
+
+via content variable : 
+
+<div class='reading_time'>
+{{ reading_time }} min read
+</div>
+
+<div class="field-image">
+{{ content.field_image }}
+</div>
+
+<div class="body">
+{{ content.body }}
+</div>
+
+<div class='field-tags'>
+{{content.field_tags}}</div>
+
+.....
+
+via node variable : 
+
+
