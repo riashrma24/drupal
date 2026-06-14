@@ -60,3 +60,24 @@ Q: "A client wants a specific paragraph type to look completely different depend
 Expected Answer: This should be handled using template suggestions based on the parent entity. In the .theme file, implement hook_theme_suggestions_paragraph_alter(). Access the parent entity from the paragraph object, check its bundle type (landing_page or article), and append that as a new suggestion (e.g., paragraph__PARAGRAPH_TYPE__parent__LANDING_PAGE). This keeps the backend architecture clean without creating redundant paragraph fields or content types.
 
 
+Q: If that product card component is rendered 12 times on a single catalog page via a Views block, does Drupal's asset resolver inject the CSS file into the HTML <head> 12 times? What happens internally within the AssetResolver class to prevent duplicate loading, and how does aggregate caching handle this conditional file on pages where it does load vs. pages where it doesn't?
+
+
+
+Q: Why shouldn't a developer just use standard vanilla JS document.addEventListener('DOMContentLoaded', ...) inside a Drupal theme? Explain the internal mechanism of Drupal.attachBehaviors() and how the context and settings parameters prevent memory leaks or duplicate event bindings during AJAX operations (like infinite scroll or exposed Views filters).
+
+
+
+Q: Once Drupal compiles and caches the theme registry, these regions are technically locked. However, suppose a business requirement demands that a specific region (e.g., sidebar_first) must be completely hidden and programmatically removed from the architecture before block layout rendering occurs, based on a third-party API condition. Which PHP hook in my_theme.theme allows you to dynamically manipulate the theme's structural definition data, and what are the performance implications of doing so?
+
+
+Q: How does the Drupal core Responsive Image module natively interface with my_theme.breakpoints.yml? Walk through the backend chain of events: how does a breakpoint group defined in your theme's YAML file map to a rendered HTML5 <picture> tag with srcset attributes on the frontend?
+
+
+Q: Under the hood, standard Drupal templates (templates/node/node.html.twig) rely heavily on the flat $variables array passed down from global preprocess hooks. SDC, however, enforces strict schema validation via a component.yml file. If a senior developer tries to use a global hook like THEMENAME_preprocess_node() to inject an arbitrary variable directly into an SDC template component, will it work? How does SDC isolate its data scope compared to traditional theme templates?
+
+
+Q: Given the directory structure you provided, how would your custom theme explicitly target, intercept, and override that specific component's Twig template and CSS without breaking the module's underlying business logic? What is the explicit directory paths/naming convention required?
+
+
+
