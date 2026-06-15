@@ -105,3 +105,209 @@ sticky-header:
 
 6. run ddev drush cr
 
+---
+
+for 4.3
+
+1. Create web/themes/sky/sky.routing.yml
+
+sky.favorite_toggle:
+  path: '/sky/favorite/{node}'
+  defaults:
+    _controller: '\Drupal\sky\Controller\FavoriteController::toggle'
+    _title: 'Favorite Toggle'
+  requirements:
+    _permission: 'access content'
+    node: \d+
+  methods: [POST]
+
+2. Create the controller
+
+<?php
+
+namespace Drupal\sky\Controller;
+
+use Drupal\Core\Controller\ControllerBase;
+use Drupal\node\NodeInterface;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
+
+class FavoriteController extends ControllerBase {
+
+  public function toggle(NodeInterface $node, Request $request): JsonResponse {
+    $session = $request->getSession();
+    $favorites = $session->get('sky_favorites', []);
+    $nid = $node->id();
+
+    if (in_array($nid, $favorites)) {
+      $favorites = array_values(array_filter($favorites, fn($id) => $id !== $nid));
+      $favorited = FALSE;
+    }
+    else {
+      $favorites[] = $nid;
+      $favorited = TRUE;
+    }
+
+    $session->set('sky_favorites', $favorites);
+
+    return new JsonResponse(['status' => 'ok', 'favorited' => $favorited]);
+  }
+
+}
+
+
+3. add a toggle button in node--article--full.html.twig
+
+{{ attach_library('sky/favorite-toggle') }}
+
+<article class="article-full">
+....
+  <div class="article-full__body">
+    {{ content.body }}
+  </div>
+
+  <button
+    class="favorite-btn"
+    data-nid="{{ node.id() }}"
+    aria-label="Add to favorites"
+    aria-pressed="false">
+    <span class="favorite-btn__icon">♡</span>
+    <span class="favorite-btn__label">Favorite</span>
+    <span class="favorite-btn__spinner" aria-hidden="true"></span>
+  </button>
+
+</article>
+
+4. create js/favourite-toggle.js
+
+/**
+ * @file
+ * AJAX favorite toggle — fetch() with Drupal CSRF token.
+ */
+(function (Drupal, once) {
+
+    'use strict';
+
+    Drupal.behaviors.favoriteToggle = {
+        attach(context, settings) {
+
+            once('favorite-toggle', '.favorite-btn', context).forEach(function (button) {
+
+                button.addEventListener('click', async function () {
+                    const nid = button.dataset.nid;
+
+                    button.classList.add('favorite-btn--loading');
+                    button.disabled = true;
+
+                    try {
+                        const token = await fetch('/session/token').then(r => r.text());
+
+                        const response = await fetch(`/sky/favorite/${nid}`, {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRF-Token': token,
+                                'Content-Type': 'application/json',
+                            },
+                        });
+
+                        if (!response.ok) throw new Error(`Server error: ${response.status}`);
+
+                        const data = await response.json();
+                        if (data.favorited) {
+                            button.classList.add('favorite-btn--active');
+                            button.setAttribute('aria-label', 'Remove from favorites');
+                            button.setAttribute('aria-pressed', 'true');
+                            button.querySelector('.favorite-btn__icon').textContent = '♥';
+                        }
+                        else {
+                            button.classList.remove('favorite-btn--active');
+                            button.setAttribute('aria-label', 'Add to favorites');
+                            button.setAttribute('aria-pressed', 'false');
+                            button.querySelector('.favorite-btn__icon').textContent = '♡';
+                        }
+
+                    }
+                    catch (error) {
+                        button.classList.add('favorite-btn--error');
+                        setTimeout(() => button.classList.remove('favorite-btn--error'), 3000);
+                    }
+                    finally {
+                        button.classList.remove('favorite-btn--loading');
+                        button.disabled = false;
+                    }
+                });
+
+            });
+
+        }
+    };
+
+}(Drupal, once));
+
+5. Create css/component/favorite-toggle.css
+
+.favorite-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1.25rem;
+  border: 2px solid var(--color-primary, #0057b8);
+  background: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background 0.2s ease, color 0.2s ease;
+  margin-top: 1.5rem;
+}
+
+.favorite-btn--active {
+  background: var(--color-primary, #0057b8);
+  color: white;
+}
+
+.favorite-btn--error {
+  border-color: #c0392b;
+  color: #c0392b;
+}
+
+/* Spinner — hidden by default, shown during loading */
+.favorite-btn__spinner {
+  display: none;
+  width: 14px;
+  height: 14px;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: fav-spin 0.6s linear infinite;
+}
+
+.favorite-btn--loading .favorite-btn__spinner {
+  display: inline-block;
+}
+
+.favorite-btn--loading .favorite-btn__icon,
+.favorite-btn--loading .favorite-btn__label {
+  opacity: 0.4;
+}
+
+@keyframes fav-spin {
+  to { transform: rotate(360deg); }
+}
+
+
+6. Register library in sky.libraries.yml
+
+favorite-toggle:
+  js:
+    js/favorite-toggle.js: {}
+  css:
+    component:
+      css/component/favorite-toggle.css: {}
+  dependencies:
+    - core/drupal
+    - core/once
+
+7. ddev drush cr
+
+
+
