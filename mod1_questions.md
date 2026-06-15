@@ -59,6 +59,7 @@ Q: "A client wants a specific paragraph type to look completely different depend
 
 Expected Answer: This should be handled using template suggestions based on the parent entity. In the .theme file, implement hook_theme_suggestions_paragraph_alter(). Access the parent entity from the paragraph object, check its bundle type (landing_page or article), and append that as a new suggestion (e.g., paragraph__PARAGRAPH_TYPE__parent__LANDING_PAGE). This keeps the backend architecture clean without creating redundant paragraph fields or content types.
 
+---
 
 Q: If that product card component is rendered 12 times on a single catalog page via a Views block, does Drupal's asset resolver inject the CSS file into the HTML <head> 12 times? What happens internally within the AssetResolver class to prevent duplicate loading, and how does aggregate caching handle this conditional file on pages where it does load vs. pages where it doesn't?
 
@@ -79,5 +80,34 @@ Q: Under the hood, standard Drupal templates (templates/node/node.html.twig) rel
 
 Q: Given the directory structure you provided, how would your custom theme explicitly target, intercept, and override that specific component's Twig template and CSS without breaking the module's underlying business logic? What is the explicit directory paths/naming convention required?
 
+
+----
+
+Q1. How does control flow inside a theme
+Q2. How to debug in each step of the theme, what are the checkpoints
+Q3. What does .info.yml do? what are its parts?
+Q4. libraries.yml
+Q5. theme.theme
+Q6. explain smacss and how does it work in drupal? what are its adv? is it there in 
+Q7. What all can we override, if we override a field and also its block which one is visible
+Q8. implementation questions on hook impl
+Q9. implementation questions on twig
+Q10. how to add custom body classes via 1. node-type-[bundle] 2. path
+Q11. Create 4 footer regions (Footer Col 1–4), expose them in page.html.twig, and build a 4-
+column CSS Grid footer that collapses responsively.
+Declare 4 regions in .info.yml
+Output in page.html.twig with semantic HTML
+Add a block to each region via Drupal UI
+CSS Grid with mobile collapse
+Q12. How does the twig suggestions system work
+
+----
+
+Q1. Implement your own twig filter
+Q2. Implement your own twig function
+Q3. explain twig delimiters
+Q4. explain twig filters via example and their usage
+Q5. explain twig functions via examples and their usage
+Q6. 
 
 
