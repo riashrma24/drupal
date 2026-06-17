@@ -4,7 +4,7 @@ ddev config --docroot=web --project-type=drupal11
 ddev start
 ddev composer create-project drupal/recommended-project .
 ddev composer require drush/drush
-ddev drush site:install --account-name=admin --pass=admin -y
+ddev drush site:install --account-name=admin --account-pass=admin -y
 ddev launch
 
 ----
