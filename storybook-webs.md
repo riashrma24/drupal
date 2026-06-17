@@ -81,3 +81,14 @@
 
 27. npm run storybook
      → Storybook 8.6.18 running at http://localhost:6007 ✓
+
+
+
+    
+
+
+Note — where we went wrong and why
+1. Base theme was claro — drush generate theme defaults to claro which is Drupal's admin theme. Frontend themes should use stable9 (minimal, no opinions). We caught this early and fixed it manually in plant.info.yml.
+2. --no-open flag on storybook init — this flag was removed in newer versions of Storybook. The fix was simply dropping it.
+3. Storybook version mismatch — running npx storybook@latest init installed Storybook 10, but @storybook/html-webpack5 only supports Storybook 8. They use incompatible peer dependencies and npm refused to install them together. The fix was pinning everything to ^8.6.14 in package.json, deleting node_modules and reinstalling cleanly.
+4. twig-loader version didn't exist — package.json had ^0.6.2 but the latest published version is 0.5.5. We ran npm info twig-loader versions to find the correct version and updated package.json accordingly.
